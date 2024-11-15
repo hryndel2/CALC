@@ -1,0 +1,393 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Матричный калькулятор</title>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.container:hover {
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+}
+
+h1, h2 {
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"], textarea {
+    width: 95%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #28a745;
+    outline: none;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+#results {
+    margin-top: 20px;
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.matrix {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.matrix table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matrix td {
+    padding: 8px;
+    text-align: center;
+}
+
+.matrix td input {
+    width: 80%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+        font-size: 14px;
+    }
+
+    button {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    #results {
+        padding: 10px;
+    }
+
+    .matrix td input {
+        width: 70%;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+        font-size: 12px;
+    }
+
+    button {
+        font-size: 12px;
+    }
+}
+	</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Матричный калькулятор</h1>
+        
+        <div class="matrix-input">
+            <h2>Создание матрицы</h2>
+            <label for="matrixName">Имя матрицы:</label>
+            <input type="text" id="matrixName" placeholder="Введите имя матрицы" required>
+            <label for="rows">Количество строк:</label>
+            <input type="number" id="rows" min="1" required>
+            <label for="cols">Количество столбцов:</label>
+            <input type="number" id="cols" min="1" required>
+            <button id="createMatrix">Создать матрицу</button>
+        </div>
+
+        <div id="matrixContainer"></div>
+
+        <div class="task-input">
+            <h2>Создание задач</h2>
+            <div id="taskInputs"></div>
+            <button id="addTask">Добавить задачу</button>
+            <button id="solveTasks">Решить задачи</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+
+    <script>
+let matrices = {};
+
+document.getElementById('createMatrix').addEventListener('click', function() {
+    const matrixName = document.getElementById('matrixName').value;
+    const rows = parseInt(document.getElementById('rows').value);
+    const cols = parseInt(document.getElementById('cols').value);
+    
+    if (!matrixName || isNaN(rows) || isNaN(cols)) {
+        alert('Пожалуйста, заполните все поля.');
+        return;
+    }
+
+    // Создаем контейнер для матрицы, если он еще не существует
+    if (!matrices[matrixName]) {
+        matrices[matrixName] = { rows, cols, values: [] };
+    }
+
+    const matrixContainer = document.getElementById('matrixContainer');
+    const matrixDiv = document.createElement('div');
+    matrixDiv.classList.add('matrix');
+    matrixDiv.innerHTML = `<h3>Матрица: ${matrixName}</h3>`;
+    
+    const table = document.createElement('table');
+    for (let i = 0; i < rows; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < cols; j++) {
+            const cell = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.placeholder = `(${i+1},${j+1})`;
+            cell.appendChild(input);
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
+    matrixDiv.appendChild(table);
+    matrixContainer.appendChild(matrixDiv);
+    
+    // Сохраняем значения матрицы
+    matrices[matrixName].values.push({ rows, cols });
+});
+
+document.getElementById('addTask').addEventListener('click', function() {
+    const taskInputs = document.getElementById('taskInputs');
+    const taskInput = document.createElement('input');
+    taskInput.type = 'text';
+    taskInput.placeholder = 'Введите задачу (например, A+B, A-B, A*B или Aт)';
+    taskInputs.appendChild(taskInput);
+});
+
+document.getElementById('solveTasks').addEventListener('click', function() {
+    const taskInputs = document.getElementById('taskInputs').getElementsByTagName('input');
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = '';
+
+    Array.from(taskInputs).forEach(taskInput => {
+        const task = taskInput.value.trim();
+        if (task.includes('+')) {
+            const [matrixA, matrixB] = task.split('+');
+            if (matrices[matrixA] && matrices[matrixB]) {
+                const result = addMatrices(matrixA, matrixB);
+                if (result) {
+                    resultsContainer.innerHTML += `<h4>Результат сложения матриц ${matrixA} и ${matrixB}:</h4>`;
+                    resultsContainer.innerHTML += formatMatrix(result);
+                }
+            } else {
+                resultsContainer.innerHTML += `<p>Одна из матриц "${matrixA}" или "${matrixB}" не существует.</p>`;
+            }
+        } else if (task.includes('-')) {
+            const [matrixA, matrixB] = task.split('-');
+            if (matrices[matrixA] && matrices[matrixB]) {
+                const result = subtractMatrices(matrixA, matrixB);
+                if (result) {
+                    resultsContainer.innerHTML += `<h4>Результат вычитания матриц ${matrixA} и ${matrixB}:</h4>`;
+                    resultsContainer.innerHTML += formatMatrix(result);
+                }
+            } else {
+                resultsContainer.innerHTML += `<p>Одна из матриц "${matrixA}" или "${matrixB}" не существует.</p>`;
+            }
+        } else if (task.includes('*')) {
+            const [matrixA, matrixB] = task.split('*');
+            if (matrices[matrixA] && matrices[matrixB]) {
+                const result = multiplyMatrices(matrixA, matrixB);
+                if (result) {
+                    resultsContainer.innerHTML += `<h4>Результат умножения матриц ${matrixA} и ${matrixB}:</h4>`;
+                    resultsContainer.innerHTML += formatMatrix(result);
+                }
+            } else {
+                resultsContainer.innerHTML += `<p>Одна из матриц "${matrixA}" или "${matrixB}" не существует.</p>`;
+            }
+        } else if (task.endsWith('т') && matrices[task.slice(0, -1)]) {
+            const matrix = matrices[task.slice(0, -1)];
+            const transposed = transposeMatrix(matrix);
+            resultsContainer.innerHTML += `<h4>Результат транспонирования матрицы ${task.slice(0, -1)}:</h4>`;
+            resultsContainer.innerHTML += formatMatrix(transposed);
+        } else if (task.endsWith('опр') && matrices[task.slice(0, -3)]) {
+            const matrix = matrices[task.slice(0, -3)];
+            if (matrix.rows === matrix.cols) {
+                const determinant = calculateDeterminant(matrix);
+                resultsContainer.innerHTML += `<h4>Determinant of matrix ${task.slice(0, -3)}:</h4>`;
+                resultsContainer.innerHTML += `<p>${determinant}</p>`;
+            } else {
+                resultsContainer.innerHTML += `<p>The determinant can only be calculated for square matrices.</p>`;
+            }
+        } else {
+            resultsContainer.innerHTML += `<p>Task "${task}" is not recognized.</p>`;
+        }
+    });
+});
+function addMatrices(matrixAName, matrixBName) {
+    const matrixA = matrices[matrixAName];
+    const matrixB = matrices[matrixBName];
+
+    if (matrixA.rows !== matrixB.rows || matrixA.cols !== matrixB.cols) {
+        alert('Матрицы должны иметь одинаковую размерность для сложения.');
+        return null; // Возвращаем null в случае ошибки
+    }
+
+    const result = { rows: matrixA.rows, cols: matrixA.cols, values: Array.from({ length: matrixA.rows }, () => Array(matrixA.cols).fill(0)) };
+
+    for (let i = 0; i < result.rows; i++) {
+        for (let j = 0; j < result.cols; j++) {
+            const inputA = document.querySelector(`#matrixContainer .matrix:nth-child(${Object.keys(matrices).indexOf(matrixAName) + 1}) table tr:nth-child(${i + 1}) td:nth-child(${j + 1}) input`);
+            const inputB = document.querySelector(`#matrixContainer .matrix:nth-child(${Object.keys(matrices).indexOf(matrixBName) + 1}) table tr:nth-child(${i + 1}) td:nth-child(${j + 1}) input`);
+            const valueA = inputA ? (inputA.value ? parseFloat(inputA.value) : 0) : 0;
+            const valueB = inputB ? (inputB.value ? parseFloat(inputB.value) : 0) : 0;
+            result.values[i][j] = valueA + valueB;
+        }
+    }
+    return result;
+}
+
+        function calculateDeterminant(matrix) {
+            if (matrix.rows === 1) {
+                return matrix.values[0][0]; // Определитель 1-го порядка
+            }
+            if (matrix.rows === 2) {
+                return matrix.values[0][0] * matrix.values[1][1] - matrix.values[0][1] * matrix.values[1][0]; // Определитель 2-го порядка
+            }
+
+            let determinant = 0;
+            for (let j = 0; j < matrix.cols; j++) {
+                const subMatrix = getSubMatrix(matrix, 0, j);
+                determinant += (j % 2 === 0 ? 1 : -1) * matrix.values[0][j] * calculateDeterminant(subMatrix);
+            }
+            return determinant;
+        }
+
+        function getSubMatrix(matrix, row, col) {
+            const subMatrix = {
+                rows: matrix.rows - 1,
+                cols: matrix.cols - 1,
+                values: []
+            };
+            for (let i = 0; i < matrix.rows; i++) {
+                if (i !== row) {
+                    const newRow = [];
+                    for (let j = 0; j < matrix.cols; j++) {
+                        if (j !== col) {
+                            newRow.push(matrix.values[i][j]);
+                        }
+                    }
+                    subMatrix.values.push(newRow);
+                }
+            }
+            return subMatrix;
+        }
+
+function multiplyMatrices(matrixAName, matrixBName) {
+    const matrixA = matrices[matrixAName];
+    const matrixB = matrices[matrixBName];
+
+    if (matrixA.cols !== matrixB.rows) {
+        alert('Количество столбцов первой матрицы должно совпадать с количеством строк второй матрицы.');
+        return null; // Возвращаем null в случае ошибки
+    }
+
+    const result = { rows: matrixA.rows, cols: matrixB.cols, values: Array.from({ length: matrixA.rows }, () => Array(matrixB.cols).fill(0)) };
+
+    for (let i = 0; i < result.rows; i++) {
+        for (let j = 0; j < result.cols; j++) {
+            let sum = 0;
+            for (let k = 0; k < matrixA.cols; k++) {
+                const inputA = document.querySelector(`#matrixContainer .matrix:nth-child(${Object.keys(matrices).indexOf(matrixAName ) + 1}) table tr:nth-child(${i + 1}) td:nth-child(${k + 1}) input`);
+                const inputB = document.querySelector(`#matrixContainer .matrix:nth-child(${Object.keys(matrices).indexOf(matrixBName) + 1}) table tr:nth-child(${k + 1}) td:nth-child(${j + 1}) input`);
+                const valueA = inputA ? (inputA.value ? parseFloat(inputA.value) : 0) : 0;
+                const valueB = inputB ? (inputB.value ? parseFloat(inputB.value) : 0) : 0;
+                sum += valueA * valueB;
+            }
+            result.values[i][j] = sum;
+        }
+    }
+    return result;
+}
+
+function transposeMatrix(matrix) {
+    const transposed = { rows: matrix.cols, cols: matrix.rows, values: Array.from({ length: matrix.cols }, () => Array(matrix.rows).fill(0)) };
+    for (let j = 0; j < matrix.cols; j++) {
+        for (let i = 0; i < matrix.rows; i++) {
+            const input = document.querySelector(`#matrixContainer .matrix:last-child table tr:nth-child(${i + 1}) td:nth-child(${j + 1}) input`);
+            transposed.values[j][i] = input ? (input.value ? parseFloat(input.value) : 0) : 0; // Если значение не введено, используем 0
+        }
+    }
+    return transposed;
+}
+
+function formatMatrix(matrix) {
+    let result = '<table>';
+    matrix.values.forEach(row => {
+        result += '<tr>';
+        row.forEach(value => {
+            result += `<td>${value}</td>`;
+        });
+        result += '</tr>';
+    });
+    result += '</table>';
+    return result;
+}
+	</script>
+</body>
+</html>
